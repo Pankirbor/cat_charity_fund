@@ -51,6 +51,8 @@ async def create_donation(
     dependencies=[Depends(current_user)],
 )
 async def get_my_donations(
+    user: User = Depends(current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    pass
+    donations = await donation_crud.get_by_user(user, session)
+    return donations
