@@ -18,7 +18,7 @@ class CharityProjectDB(CharityProjectCreate):
     id: int
     invested_amount: int
     fully_invested: bool
-    create_date: datetime
+    create_date: datetime  # todo исправить поле на created_date
     close_date: Optional[datetime]
 
     class Config:

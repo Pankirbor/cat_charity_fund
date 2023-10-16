@@ -18,7 +18,7 @@ class DonationDBForUser(DonationCreate):
 
 
 class DonationDBAll(DonationDBForUser):
-    user_id: int
+    user_id: Optional[int]
     invested_amount: int
     fully_invested: bool = Field(False)
     close_date: Optional[datetime]

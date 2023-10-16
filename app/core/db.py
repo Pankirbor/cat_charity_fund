@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, DateTime, Boolean
+from sqlalchemy import Column, Integer, DateTime, Boolean, func
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 
@@ -8,8 +8,8 @@ from app.core.config import settings
 
 
 class DateTimeMixin:
-    created_date = Column(DateTime, default=datetime.now)
-    close_date = Column(DateTime, default=False)
+    create_date = Column(DateTime, default=datetime.now)
+    close_date = Column(DateTime, default=None)
 
 
 class InvestedMixin:
