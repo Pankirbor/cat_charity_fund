@@ -3,23 +3,25 @@ from typing import Union
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import CharityProjrct, Donation
+from app.models import CharityProject, Donation
 
 
-def recalculation(project: CharityProjrct, donation: Donation) -> None:
+def recalculation(project: CharityProject, donation: Donation) -> None:
     if project.get_balance() >= donation.get_balance():
         project.add_donation(donation.get_balance())
         donation.close_donation()
     else:
         diff = donation.get_balance() - project.get_balance()
         donation.set_new_invested_amount(diff)
+
+    if project.is_amount_collected():
         project.close_project()
 
 
 async def distribution_of_investments(
-    item: Union[CharityProjrct, Donation], key: str, session: AsyncSession
-) -> Union[CharityProjrct, Donation]:
-    models = {"project": Donation, "donation": CharityProjrct}
+    item: Union[CharityProject, Donation], key: str, session: AsyncSession
+) -> Union[CharityProject, Donation]:
+    models = {"project": Donation, "donation": CharityProject}
     objects = await session.execute(
         select(models[key]).where(models[key].fully_invested == bool(False))
     )
@@ -33,6 +35,7 @@ async def distribution_of_investments(
         for object_ in objects:
             recalculation(item, object_)
 
+    session.add(item)
     await session.commit()
     await session.refresh(item)
     return item
