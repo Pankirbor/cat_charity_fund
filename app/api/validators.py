@@ -1,24 +1,19 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.constans import (
+    CLOSE_PROJECT,
+    INVALID_DELETE,
+    INVALID_FULL_AMOUNT,
+    INVALID_NAME_OR_FULL_AMOUNT,
+    NAME_DUPLICATE,
+    NOT_FOUND_PROJECT,
+)
 from app.crud.charity_project import project_crud
 from app.models import CharityProject
 from app.schemas.charity_project import CharityProjectPatch
 
-"""
-Суперпользователь может:
-создавать проекты,
-удалять проекты, в которые не было внесено средств,
-изменять название и описание существующего проекта,
-устанавливать для него новую требуемую сумму (но не меньше уже внесённой).
 
-Никто не может менять через API размер внесённых средств,
-удалять или модифицировать закрытые проекты,
-изменять даты создания и закрытия проектов.
-"""
-
-
-# todo сделать валидатор для проверки
 async def check_name_duplicate(
     project_name: str,
     session: AsyncSession,
@@ -27,7 +22,7 @@ async def check_name_duplicate(
     if project_id is not None:
         raise HTTPException(
             status_code=400,
-            detail="Проект с таким именем уже существует!",
+            detail=NAME_DUPLICATE,
         )
 
 
@@ -40,7 +35,7 @@ async def check_project(
     if not project:
         raise HTTPException(
             status_code=404,
-            detail="Проект не найден!",
+            detail=NOT_FOUND_PROJECT,
         )
     if project.fully_invested:
         raise HTTPException(
@@ -55,22 +50,20 @@ async def check_project_before_edit(
     obj_in: CharityProjectPatch,
     session: AsyncSession,
 ) -> CharityProject:
-    project = await check_project(
-        project_id, session, "Закрытый проект нельзя редактировать!"
-    )
+    project = await check_project(project_id, session, CLOSE_PROJECT)
 
     if obj_in.full_amount:
         if project.invested_amount > obj_in.full_amount:
             raise HTTPException(
                 status_code=400,
-                detail="Невозможно устанавить новую требуемую сумму, так как она меньше уже собранной.",
+                detail=INVALID_FULL_AMOUNT,
             )
 
     for field, value in obj_in.dict().items():
         if value in ("", 0):
             raise HTTPException(
                 status_code=422,
-                detail="имя или оптсание не может быть пустой строкой или None",
+                detail=INVALID_NAME_OR_FULL_AMOUNT,
             )
 
     return project
@@ -80,13 +73,11 @@ async def check_project_before_delete(
     project_id: int,
     session: AsyncSession,
 ) -> CharityProject:
-    project = await check_project(
-        project_id, session, "В проект были внесены средства, не подлежит удалению!"
-    )
+    project = await check_project(project_id, session, INVALID_DELETE)
 
     if project.invested_amount:
         raise HTTPException(
             status_code=400,
-            detail="В проект были внесены средства, не подлежит удалению!",
+            detail=INVALID_DELETE,
         )
     return project

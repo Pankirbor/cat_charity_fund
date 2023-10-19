@@ -13,6 +13,8 @@ class CRUDRCharityProject(CRUDBase):
         project_name: str,
         session: AsyncSession,
     ) -> Optional[int]:
+        """Метод для получения id объекта таблицы по названию."""
+
         db_project_id = await session.execute(
             select(CharityProject.id).where(CharityProject.name == project_name)
         )
@@ -24,7 +26,10 @@ class CRUDRCharityProject(CRUDBase):
         db_obj,
         obj_in,
         session: AsyncSession,
-    ):
+    ) -> CharityProject:
+        """Метод обновления значений объекта,
+        расширяющий аналогичный метод базового класса."""
+
         project = await self.update(db_obj, obj_in, session)
         if project.invested_amount == project.full_amount:
             project.close_project()

@@ -4,6 +4,8 @@ from pydantic import BaseSettings, EmailStr
 
 
 class Settings(BaseSettings):
+    """Класс настроек проекта."""
+
     app_title: str = "QRKot"
     db_url: str = "sqlite+aiosqlite:///./fastapi.db"
     secret: str = "SECRET"

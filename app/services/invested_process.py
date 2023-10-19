@@ -7,6 +7,9 @@ from app.models import CharityProject, Donation
 
 
 def recalculation(project: CharityProject, donation: Donation) -> None:
+    """Функцая производящая рассчет имеющихся средств
+    и обновления объектов фонда и пожертвования"""
+
     if project.get_balance() >= donation.get_balance():
         project.add_donation(donation.get_balance())
         donation.close_donation()
@@ -21,6 +24,8 @@ def recalculation(project: CharityProject, donation: Donation) -> None:
 async def distribution_of_investments(
     item: Union[CharityProject, Donation], key: str, session: AsyncSession
 ) -> Union[CharityProject, Donation]:
+    """Функция распределения средств в фонды."""
+
     models = {"project": Donation, "donation": CharityProject}
     objects = await session.execute(
         select(models[key]).where(models[key].fully_invested == bool(False))

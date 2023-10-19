@@ -8,7 +8,13 @@ from app.models import User
 
 
 class CRUDBase:
+    """
+    Базовый класс для работы с объектами таблиц
+    и выполнения основных операций CRUD.
+    """
+
     def __init__(self, model):
+        """Инициилизатор таблицы."""
         self.model = model
 
     async def get(
@@ -16,12 +22,16 @@ class CRUDBase:
         obj_id: int,
         session: AsyncSession,
     ):
+        """Метод получения объекта по id из таблицы."""
+
         db_obj = await session.execute(
             select(self.model).where(self.model.id == obj_id)
         )
         return db_obj.scalars().first()
 
     async def get_multi(self, session: AsyncSession):
+        """Метод получения всех объектов из таблицы."""
+
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
 
@@ -31,6 +41,8 @@ class CRUDBase:
         session: AsyncSession,
         user: Optional[User] = None,
     ):
+        """Метод для создания объекта в таблице"""
+
         obj_in_data = obj_in.dict()
         if user is not None:
             user_id = user.id
@@ -48,6 +60,8 @@ class CRUDBase:
         obj_in,
         session: AsyncSession,
     ):
+        """Метод для обновления значений объекта в таблице."""
+
         obj_data = jsonable_encoder(db_obj)
         update_data = obj_in.dict(exclude_unset=True)
 
@@ -64,6 +78,8 @@ class CRUDBase:
         db_obj,
         session: AsyncSession,
     ):
+        """Метод удаления объекта из таблицы."""
+
         await session.delete(db_obj)
         await session.commit()
         return db_obj

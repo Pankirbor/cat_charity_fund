@@ -53,7 +53,6 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             raise InvalidPasswordException(reason="Password should not contain e-mail")
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
-        # ? Вместо print здесь можно было бы настроить отправку письма.
         print(f"Пользователь {user.email} зарегистрирован.")
 
 
