@@ -63,7 +63,7 @@ async def create_donation(
         session,
         user,
     )
-    new_donation = await distribution_of_investments(new_donation, "donation", session)
+    new_donation = await distribution_of_investments(new_donation, session)
     return new_donation
 
 

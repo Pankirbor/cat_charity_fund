@@ -22,6 +22,8 @@ from app.schemas.user import UserCreate
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    """Функция асинхронный генератор для доступа к БД через SQLAlchemy"""
+
     yield SQLAlchemyUserDatabase(session, User)
 
 
@@ -29,6 +31,8 @@ bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 
 def get_jwt_strategy() -> JWTStrategy:
+    """Функция для определения стратегии: хранение токена в виде JWT"""
+
     return JWTStrategy(secret=settings.secret, lifetime_seconds=3600)
 
 
@@ -40,11 +44,15 @@ auth_backend = AuthenticationBackend(
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
+    """Класс, определяющий работу с пользователем."""
+
     async def validate_password(
         self,
         password: str,
         user: Union[UserCreate, User],
     ) -> None:
+        """Метод для валидации пароля."""
+
         if len(password) < 3:
             raise InvalidPasswordException(
                 reason="Password should be at least 3 characters"
@@ -53,10 +61,14 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             raise InvalidPasswordException(reason="Password should not contain e-mail")
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
+        """Метод, завершающий успешную регистрацию пользователя."""
+
         print(f"Пользователь {user.email} зарегистрирован.")
 
 
 async def get_user_manager(user_db=Depends(get_user_db)):
+    """Функция, возвращающая объект класса UserManager."""
+
     yield UserManager(user_db)
 
 

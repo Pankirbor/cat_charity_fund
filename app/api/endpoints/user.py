@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.api.constans import NOT_USER_DELETE
+from app.constants import NOT_USER_DELETE
 from app.core.user import auth_backend, fastapi_users
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 

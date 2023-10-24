@@ -15,6 +15,8 @@ from app.schemas.charity_project import CharityProjectCreate, CharityProjectPatc
 
 
 class CRUDRCharityProject(CRUDBase):
+    """Класс для работы с объектами таблицы CharityProject"""
+
     async def get_project_id_by_name(
         self,
         project_name: str,

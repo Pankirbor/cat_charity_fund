@@ -11,6 +11,8 @@ async def check_project(
     session: AsyncSession,
     msg: str,
 ) -> CharityProject:
+    """Функция проверяющая наличие проекта в базе данных и статус fully_invested"""
+
     project = await project_crud.get(project_id, session)
     if not project:
         raise HTTPException(

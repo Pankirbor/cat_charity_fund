@@ -28,7 +28,7 @@ class InvestedMixin:
 
 class PreBase:
     """
-    Класс расширяющий базовую таблицу.
+    Класс, расширяющий базовую таблицу.
     """
 
     @declared_attr

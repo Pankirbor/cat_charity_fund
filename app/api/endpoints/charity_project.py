@@ -64,7 +64,7 @@ async def create_charity_project(
 
     try:
         new_project = await project_crud.create_project(charity_project, session)
-        new_project = await distribution_of_investments(new_project, "project", session)
+        new_project = await distribution_of_investments(new_project, session)
     except Exception as err:
         raise HTTPException(
             status_code=400,

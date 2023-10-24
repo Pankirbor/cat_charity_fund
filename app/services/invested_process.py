@@ -22,17 +22,15 @@ def recalculation(project: CharityProject, donation: Donation) -> None:
 
 
 async def distribution_of_investments(
-    item: Union[CharityProject, Donation], key: str, session: AsyncSession
+    item: Union[CharityProject, Donation], session: AsyncSession
 ) -> Union[CharityProject, Donation]:
     """Функция распределения средств в фонды."""
 
-    models = {"project": Donation, "donation": CharityProject}
-    objects = await session.execute(
-        select(models[key]).where(models[key].fully_invested == bool(False))
-    )
+    model = Donation if isinstance(item, CharityProject) else CharityProject
+    objects = await session.execute(select(model).where(model.fully_invested == False))
     objects = objects.scalars().all()
     objects.sort(key=lambda x: x.create_date)
-    if key == "donation":
+    if isinstance(item, Donation):
         for object_ in objects:
             recalculation(object_, item)
 

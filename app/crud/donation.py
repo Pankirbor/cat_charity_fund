@@ -6,12 +6,14 @@ from app.models import Donation, User
 
 
 class CRUDRDonation(CRUDBase):
+    """Класс для работы с объектами таблицы Donation"""
+
     async def get_by_user(
         self,
         user: User,
         session: AsyncSession,
     ) -> list[Donation]:
-        """Метод для получения всех объектов с конкретным user_id."""
+        """Метод для получения всех пожертвований с конкретным user_id."""
 
         donations = await session.execute(
             select(Donation).where(Donation.user_id == user.id)
