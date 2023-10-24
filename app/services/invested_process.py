@@ -27,7 +27,9 @@ async def distribution_of_investments(
     """Функция распределения средств в фонды."""
 
     model = Donation if isinstance(item, CharityProject) else CharityProject
-    objects = await session.execute(select(model).where(model.fully_invested == False))
+    objects = await session.execute(
+        select(model).where(model.fully_invested == False)  # noqa
+    )
     objects = objects.scalars().all()
     objects.sort(key=lambda x: x.create_date)
     if isinstance(item, Donation):
