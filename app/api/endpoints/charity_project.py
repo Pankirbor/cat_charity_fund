@@ -1,15 +1,12 @@
-from fastapi import APIRouter, Depends
-
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import (
-    check_project_before_delete,
-    check_project_before_edit,
-    check_name_duplicate,
-)
+from app.api.validators import check_project
+from app.constants import CLOSE_PROJECT, INVALID_DELETE
 from app.core.db import get_async_session
 from app.core.user import current_superuser
 from app.crud.charity_project import project_crud
+from app.exceptions import DuplicateNameException
 from app.schemas.charity_project import (
     CharityProjectCreate,
     CharityProjectDB,
@@ -65,9 +62,15 @@ async def create_charity_project(
 
     """
 
-    await check_name_duplicate(charity_project.name, session)
-    new_project = await project_crud.create(charity_project, session)
-    new_project = await distribution_of_investments(new_project, "project", session)
+    try:
+        new_project = await project_crud.create_project(charity_project, session)
+        new_project = await distribution_of_investments(new_project, "project", session)
+    except Exception as err:
+        raise HTTPException(
+            status_code=400,
+            detail=str(err),
+        )
+
     return new_project
 
 
@@ -92,9 +95,19 @@ async def update_charity_project(
     - **id**: уникальный номер проекта
     """
 
-    await check_name_duplicate(obj_in.name, session)
-    project = await check_project_before_edit(project_id, obj_in, session)
-    project = await project_crud.update_project(project, obj_in, session)
+    project = await check_project(project_id, session, CLOSE_PROJECT)
+    try:
+        project = await project_crud.update_project(project, obj_in, session)
+    except DuplicateNameException as err:
+        raise HTTPException(
+            status_code=400,
+            detail=str(err),
+        )
+    except Exception as err:
+        raise HTTPException(
+            status_code=422,
+            detail=str(err),
+        )
     return project
 
 
@@ -117,6 +130,12 @@ async def delete_charity_project(
     - **id**: уникальный номер проекта
     """
 
-    project = await check_project_before_delete(project_id, session)
-    project = await project_crud.remove(project, session)
+    project = await check_project(project_id, session, INVALID_DELETE)
+    try:
+        project = await project_crud.remove_project(project, session)
+    except Exception as err:
+        raise HTTPException(
+            status_code=400,
+            detail=str(err),
+        )
     return project

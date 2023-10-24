@@ -3,13 +3,13 @@ from typing import Optional
 
 from pydantic import BaseModel, Extra, Field
 
-from app.schemas.constants import GREATER_THAN
+from app.constants import GREATER_THAN
 
 
 class DonationCreate(BaseModel):
     """Класс схемы для создания пожертвования."""
 
-    full_amount: int = Field(..., gt=GREATER_THAN)
+    full_amount: int = Field(gt=GREATER_THAN)
     comment: Optional[str]
 
     class Config:

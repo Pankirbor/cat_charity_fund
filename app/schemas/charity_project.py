@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Extra, Field
 
-from app.schemas.constants import (
+from app.constants import (
     GREATER_THAN,
     MAX_LENGTH,
     MIN_LENGTH,
@@ -14,12 +14,11 @@ class CharityProjectCreate(BaseModel):
     """Класс схемы для создания фонда."""
 
     name: str = Field(
-        ...,
         min_length=MIN_LENGTH,
         max_length=MAX_LENGTH,
     )
-    description: str = Field(..., min_length=MIN_LENGTH)
-    full_amount: int = Field(..., gt=GREATER_THAN)
+    description: str = Field(min_length=MIN_LENGTH)
+    full_amount: int = Field(gt=GREATER_THAN)
 
     class Config:
         extra = Extra.forbid

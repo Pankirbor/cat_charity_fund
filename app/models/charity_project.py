@@ -3,6 +3,13 @@ from datetime import datetime
 from sqlalchemy import Column, String
 
 from app.core.db import Base, DateTimeMixin, InvestedMixin
+from app.constants import (
+    GREATER_THAN,
+    INVALID_NAME,
+    MAX_LENGTH,
+    MIN_FULL_AMOUNT_EXCEPTION,
+)
+from app.exceptions import InvalidDataFieldException, InvalidNameException
 
 
 class CharityProject(Base, DateTimeMixin, InvestedMixin):
@@ -10,8 +17,22 @@ class CharityProject(Base, DateTimeMixin, InvestedMixin):
     Класс для работы с объектами Благотворительных фондов.
     """
 
-    name = Column(String(100), unique=True, nullable=False)
+    name = Column(String(MAX_LENGTH), unique=True, nullable=False)
     description = Column(String, nullable=False)
+
+    def __setattr__(self, key, value):
+        """Метод контролирующий присваивание значений атрибутам
+        с предварительной проверкой корректности данных для короткой ссылки."""
+
+        if key in ("name", "description"):
+            if value in ("", " ", None) or len(value) > MAX_LENGTH:
+                raise InvalidNameException(INVALID_NAME)
+
+        if key == "full_amount":
+            if value <= GREATER_THAN:
+                raise InvalidDataFieldException(MIN_FULL_AMOUNT_EXCEPTION)
+
+        super().__setattr__(key, value)
 
     def is_amount_collected(self):
         """
