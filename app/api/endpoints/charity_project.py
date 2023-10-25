@@ -1,19 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import check_project
+from app.api.validators import is_object_exists
 from app.constants import CLOSE_PROJECT, INVALID_DELETE
 from app.core.db import get_async_session
 from app.core.user import current_superuser
 from app.crud.charity_project import project_crud
-from app.exceptions import DuplicateNameException
+from app.exceptions import DuplicateNameException, ForbiddenModificationError
 from app.schemas.charity_project import (
     CharityProjectCreate,
     CharityProjectDB,
     CharityProjectPatch,
     CharityProjectDBPatchDelete,
 )
-from app.services.invested_process import distribution_of_investments
 
 router = APIRouter()
 
@@ -64,7 +63,6 @@ async def create_charity_project(
 
     try:
         new_project = await project_crud.create_project(charity_project, session)
-        new_project = await distribution_of_investments(new_project, session)
     except Exception as err:
         raise HTTPException(
             status_code=400,
@@ -95,10 +93,10 @@ async def update_charity_project(
     - **id**: уникальный номер проекта
     """
 
-    project = await check_project(project_id, session, CLOSE_PROJECT)
+    project = await is_object_exists(project_id, session, CLOSE_PROJECT)
     try:
         project = await project_crud.update_project(project, obj_in, session)
-    except DuplicateNameException as err:
+    except (DuplicateNameException, ForbiddenModificationError) as err:
         raise HTTPException(
             status_code=400,
             detail=str(err),
@@ -130,7 +128,7 @@ async def delete_charity_project(
     - **id**: уникальный номер проекта
     """
 
-    project = await check_project(project_id, session, INVALID_DELETE)
+    project = await is_object_exists(project_id, session, INVALID_DELETE)
     try:
         project = await project_crud.remove_project(project, session)
     except Exception as err:

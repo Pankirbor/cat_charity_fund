@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, DateTime, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 
+from app.constants import DEFAULT_AMOUNT
 from app.core.config import settings
 
 
@@ -21,8 +22,8 @@ class InvestedMixin:
     Миксин для добавления в таблицу полей отслеживания инвестиций.
     """
 
-    full_amount = Column(Integer, default=0)
-    invested_amount = Column(Integer, default=0)
+    full_amount = Column(Integer, default=DEFAULT_AMOUNT)
+    invested_amount = Column(Integer, default=DEFAULT_AMOUNT)
     fully_invested = Column(Boolean, default=False)
 
 

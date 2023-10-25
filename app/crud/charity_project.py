@@ -3,19 +3,30 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.constants import INVALID_DELETE, INVALID_FULL_AMOUNT, NAME_DUPLICATE
+from app.constants import (
+    INVALID_DELETE,
+    INVALID_FULL_AMOUNT,
+    NAME_DUPLICATE,
+    CLOSE_PROJECT,
+)
 from app.crud.base import CRUDBase
 from app.exceptions import (
     DuplicateNameException,
-    InvalidDeleteException,
-    InvalidPatchException,
+    ForbiddenModificationError,
 )
 from app.models import CharityProject
 from app.schemas.charity_project import CharityProjectCreate, CharityProjectPatch
+from app.services.invested_process import distribution_of_investments
 
 
 class CRUDRCharityProject(CRUDBase):
     """Класс для работы с объектами таблицы CharityProject"""
+
+    def is_close_project(self, db_obj: CharityProject, msg: str) -> None:
+        """Метод для проверки. Является ли проект закрытым."""
+
+        if db_obj.fully_invested:
+            raise ForbiddenModificationError(msg)
 
     async def get_project_id_by_name(
         self,
@@ -51,6 +62,7 @@ class CRUDRCharityProject(CRUDBase):
 
         await self.check_name_duplicate(obj_in.name, session)
         project = await self.create(obj_in, session)
+        project = await distribution_of_investments(project, session)
 
         return project
 
@@ -64,9 +76,11 @@ class CRUDRCharityProject(CRUDBase):
         расширяющий аналогичный метод базового класса."""
 
         await self.check_name_duplicate(obj_in.name, session)
+        self.is_close_project(db_obj, CLOSE_PROJECT)
+
         if obj_in.full_amount:
             if db_obj.invested_amount > obj_in.full_amount:
-                raise InvalidPatchException(INVALID_FULL_AMOUNT)
+                raise ForbiddenModificationError(INVALID_FULL_AMOUNT)
 
         project = await self.update(db_obj, obj_in, session)
         if project.invested_amount == project.full_amount:
@@ -84,8 +98,10 @@ class CRUDRCharityProject(CRUDBase):
         """Метод удаления проекта,
         расширяющий аналогичный метод базового класса."""
 
+        self.is_close_project(db_obj, INVALID_DELETE)
+
         if db_obj.invested_amount:
-            raise InvalidDeleteException(INVALID_DELETE)
+            raise ForbiddenModificationError(INVALID_DELETE)
 
         project = await self.remove(db_obj, session)
         return project

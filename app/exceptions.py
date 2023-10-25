@@ -26,3 +26,9 @@ class InvalidDeleteException(Exception):
     """Исключение при попытке удаления объекта."""
 
     pass
+
+
+class ForbiddenModificationError(Exception):
+    """Исключение при попытке удаления или изменении проекта."""
+
+    pass

@@ -6,12 +6,12 @@ from app.crud.charity_project import project_crud
 from app.models import CharityProject
 
 
-async def check_project(
+async def is_object_exists(
     project_id: int,
     session: AsyncSession,
     msg: str,
 ) -> CharityProject:
-    """Функция проверяющая наличие проекта в базе данных и статус fully_invested"""
+    """Функция проверяющая наличие проекта в базе данных"""
 
     project = await project_crud.get(project_id, session)
     if not project:
@@ -19,9 +19,5 @@ async def check_project(
             status_code=404,
             detail=NOT_FOUND_PROJECT,
         )
-    if project.fully_invested:
-        raise HTTPException(
-            status_code=400,
-            detail=msg,
-        )
+
     return project
